@@ -1,26 +1,70 @@
-# Arquitectura del Demo Agentic Pay
+# 🏗️ Arquitectura del Proyecto
 
-## Componentes
-- **agent.py**: Interpreta lenguaje natural y decide qué acción ejecutar (consultar saldo, hacer un pago, listar transacciones).
-- **Ollama (LLM local)**: Procesa la entrada de texto y genera una instrucción JSON.
-- **mock_bank_api.py**: API de pagos simulada con FastAPI.
-  - GET /v1/accounts/{id}/balance
-  - POST /v1/payments
-  - GET /v1/accounts/{id}/transactions
+Este demo de agente AI utiliza una arquitectura modular y local-first para ejecutar operaciones de pago interpretando lenguaje natural. A continuación se describe cada componente clave y cómo interactúan entre sí.
 
-## Flujo
-1. Usuario escribe algo en lenguaje natural → “¿Cuál es mi saldo?”
-2. El agente convierte eso en una acción JSON → `{"action":"get_balance","params":{"account_id":"acc_001"}}`
-3. El agente llama al **Mock Bank API**.
-4. API responde con datos (ej: saldo disponible).
-5. El agente responde al usuario en lenguaje natural.
+---
 
-## Diagrama (alto nivel)
+## 🧠 1. Agente (agent.py)
 
-```mermaid
-flowchart LR
-  U[Usuario] --> A[Agente (agent.py)]
-  A -->|JSON acción| API[Mock Bank API]
-  API --> A
-  A --> U
+- Recibe instrucciones en lenguaje natural del usuario.
+- Las convierte en un JSON estructurado (intención + parámetros).
+- Llama a la API simulada de banco para ejecutar la operación.
+- Imprime o registra la respuesta.
 
+> Ejemplo:  
+> Entrada: "Transfiere $500 a Juan Pérez mañana"  
+> → JSON: `{ "action": "transfer", "amount": 500, "to": "Juan Pérez", "date": "mañana" }`
+
+---
+
+## 🔗 2. Modelo LLM (local)
+
+- Se ejecuta con [Ollama](https://ollama.ai), sin conexión a servicios externos.
+- Se utiliza el modelo `phi3:3.8b` por su tamaño liviano y capacidad razonable.
+- Extrae intención, entidades y parámetros del input.
+
+---
+
+## 💳 3. Mock Bank API (mock_bank_api.py)
+
+- Servidor FastAPI simula un backend bancario.
+- Expone endpoints REST para:
+  - `/balance`
+  - `/payments`
+  - `/transactions`
+- Incluye validación de idempotencia y control de errores.
+
+---
+
+## 🌐 4. Comunicación entre módulos
+
+- El `agent.py` actúa como orquestador:
+  - Interactúa con el LLM local por `subprocess`.
+  - Realiza peticiones HTTP a la API simulada con `requests`.
+
+---
+
+## 🗂️ 5. Estructura del repositorio
+
+agentic-pay-demo/
+├── agent.py # Orquestador principal
+├── mock_bank_api.py # API bancaria simulada
+├── requirements.txt # Dependencias del entorno
+├── docs/
+│ └── architecture.md # Este documento
+├── examples/
+│ └── curl_commands.md # Pruebas manuales con curl
+└── README.md # Guía general de uso
+
+yaml
+Copy code
+
+---
+
+## 📌 Notas adicionales
+
+- Todos los componentes corren en local sin dependencias externas.
+- El diseño permite extender el agente para integrar APIs reales o validar autorización.
+- Pensado para ser funcional en demos offline o pruebas de concepto.
+
+---
