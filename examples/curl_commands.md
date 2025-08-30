@@ -1,20 +1,39 @@
-# Ejemplos de llamadas cURL
+# 🧪 Comandos curl de prueba
 
-Todas requieren header de API Key:
--H "X-API-Key: demo-key-123"
+Estos ejemplos muestran cómo interactuar con la API bancaria simulada usando `curl`. Son útiles para pruebas manuales o automatización con scripts.
 
-## Consultar saldo
-curl -s -H "X-API-Key: demo-key-123" \
-http://127.0.0.1:8000/v1/accounts/acc_001/balance
+---
 
-## Crear un pago
-curl -s -X POST -H "X-API-Key: demo-key-123" \
--H "Content-Type: application/json" \
--H "Idempotency-Key: test-123" \
--d '{"source_account_id":"acc_001","amount":500,"currency":"MXN","destination_name":"Jorge"}' \
-http://127.0.0.1:8000/v1/payments
+## 🔍 Obtener saldo
 
-## Listar transacciones
-curl -s -H "X-API-Key: demo-key-123" \
-"http://127.0.0.1:8000/v1/accounts/acc_001/transactions?limit=3"
+```bash
+curl -X GET http://localhost:8000/balance
+💸 Realizar un pago
+bash
+Copy code
+curl -X POST http://localhost:8000/payments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to_account": "juan_perez",
+    "amount": 500,
+    "currency": "MXN",
+    "idempotency_key": "test-12345"
+  }'
+Reemplaza "idempotency_key" con un valor único por transacción si pruebas múltiples veces.
 
+📄 Consultar transacciones
+bash
+Copy code
+curl -X GET http://localhost:8000/transactions
+🔁 Reintentar pago con misma clave de idempotencia
+bash
+Copy code
+curl -X POST http://localhost:8000/payments \
+  -H "Content-Type: application/json" \
+  -d '{
+    "to_account": "juan_perez",
+    "amount": 500,
+    "currency": "MXN",
+    "idempotency_key": "test-12345"
+  }'
+Este ejemplo debería retornar la misma transacción sin duplicar el cargo.
